@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 import random
@@ -10,6 +12,12 @@ from config import *
 openai.api_key = tk
 next_using = time.time()
 
+
+def logger(msg):
+    with open('log.txt', 'a') as log:
+        dt = str(datetime.now().date()) + " " + str(datetime.now().hour) + ':' + str(datetime.now().minute)
+        log.write(dt + '\n')
+        log.write(msg + '\n\n')
 
 def answer(vk_session, event, user, reply_to):
     global next_using
@@ -37,7 +45,8 @@ def answer(vk_session, event, user, reply_to):
                          message=completion.choices[0].message.content,
                          random_id=random.randint(0, 2 ** 64),
                          reply_to=reply_to)
-    except openai.error.RateLimitError:
+    except openai.error.RateLimitError as e:
+        logger(str(e))
         vk.messages.send(user_id=event.obj.message['from_id'],
                          message='Технические неполадки...\nПовторите попытку позже',
                          random_id=random.randint(0, 2 ** 64),
@@ -52,11 +61,8 @@ def func(vk_session, event):
     vk = vk_session.get_api()
     user = vk.users.get(user_ids=(event.obj.message['from_id']))[0]
     name = user['first_name'] + ' ' + user['last_name']
-    print('Новое сообщение:')
-    print('Для меня от:', name)
-    print('Текст:', event.obj.message['text'])
+
     answer(vk_session, event, user, event.obj.message['id'])
-    print('------')
 
 
 def main():
@@ -64,6 +70,8 @@ def main():
         token=TOKEN)
 
     longpoll = VkBotLongPoll(vk_session, GROUP_ID)
+
+    logger('Successfully logged')
 
     for event in longpoll.listen():
 
@@ -73,4 +81,11 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    while True:
+        try:
+            main()
+        except Exception as e:
+            logger(str(e))
+            time.sleep(3)
+
+logger('logged')
