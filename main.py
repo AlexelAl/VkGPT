@@ -2,17 +2,28 @@ import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 import random
 import threading
+from flood import Flood
 from config import *
 from complete import *
 from delay import *
 from logger import *
 
+flood = Flood()
+
 
 def sender(vk, id=None, message=None, reply_to=None):
-    return vk.messages.send(user_id=id,
-                            message=message,
-                            random_id=random.randint(0, 2 ** 64),
-                            reply_to=reply_to)
+    num = (len(message) + 4095) // 4096
+    if num == 1:
+        return vk.messages.send(user_id=id,
+                                message=message,
+                                random_id=random.randint(0, 2 ** 64),
+                                reply_to=reply_to)
+    for i in range(num):
+        vk.messages.send(user_id=id,
+                         message=message[i * 4096:min(len(message),
+                                        (i + 1) * 4096)],
+                         random_id=random.randint(0, 2 ** 64),
+                         reply_to=reply_to)
 
 
 def deleter(vk_session, id=None, msg=None):
@@ -43,8 +54,13 @@ def answer(vk_session, event, user, reply_to):
 def handler_msg(vk_session, event):
     vk = vk_session.get_api()
     user = vk.users.get(user_ids=(event.obj.message['from_id']))[0]
-
-    answer(vk_session, event, user, event.obj.message['id'])
+    if not flood.check(user['id']):
+        flood.update(user['id'])
+        answer(vk_session, event, user, event.obj.message['id'])
+    else:
+        sender(vk=vk, id=user['id'],
+               message=FLOOD_WARN,
+               reply_to=event.obj.message['id'])
 
 
 def handler_join(vk_session, event):
