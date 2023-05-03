@@ -1,4 +1,5 @@
 from datetime import datetime
+import pytz
 
 import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
@@ -15,7 +16,8 @@ next_using = time.time()
 
 def logger(msg):
     with open('log.txt', 'a') as log:
-        dt = str(datetime.now().date()) + " " + str(datetime.now().hour) + ':' + str(datetime.now().minute)
+        now = datetime.now(pytz.timezone('Europe/Moscow'))
+        dt = str(now.date()) + " " + str(now.hour).zfill(2) + ':' + str(now.minute).zfill(2)
         log.write(dt + '\n')
         log.write(msg + '\n\n')
 
@@ -87,5 +89,3 @@ if __name__ == '__main__':
         except Exception as e:
             logger(str(e))
             time.sleep(3)
-
-logger('logged')
