@@ -5,10 +5,7 @@ import openai
 openai.api_key = tk
 
 
-def complete(prom):
+def complete(prom, messages):
     completion = openai.ChatCompletion.create(model="gpt-3.5-turbo",
-                                              messages=[
-                                                  {"role": "user",
-                                                   "content": f"{prom}"}
-                                              ])
+                                              messages=messages)
     return completion.choices[0].message.content
