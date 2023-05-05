@@ -1,9 +1,10 @@
 import sqlite3
+from config import db_path
 
 
 class Conversation:
     def __init__(self):
-        self.con = sqlite3.connect("db\conv.sqlite", check_same_thread=False)
+        self.con = sqlite3.connect(db_path, check_same_thread=False)
         self.cur = self.con.cursor()
         db = self.cur.execute("SELECT * FROM conv").fetchall()
         self.num = 0
