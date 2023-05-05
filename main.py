@@ -5,6 +5,7 @@ import random
 import threading
 from flood import Flood
 from conversation import Conversation
+from audio import Audio
 from config import *
 from complete import *
 from delay import *
@@ -63,8 +64,11 @@ def handler_msg(vk_session, event, keyboard):
     user = vk.users.get(user_ids=(event.obj.message['from_id']))[0]
     if event.obj.message['text'] == 'Завершить предыдущий диалог':
         conv.delete_conv(user['id'])
-        sender(vk, user['id'], 'Диалог успешно завершён, можете начинать новый!')
+        sender(vk, user['id'], 'Диалог успешно завершён, можете начинать новый!', keyboard={})
         return
+    if len(event.obj['message']['attachments']) != 0 and event.obj['message']['attachments'][0]['type'] == 'audio_message':
+        text = Audio.transcribe(event.obj['message']['attachments'][0])
+        event.obj['message']['text'] = text
     if not flood.check(user['id']):
         flood.update(user['id'])
         answer(vk_session, event, user, event.obj.message['id'], keyboard)
@@ -88,7 +92,7 @@ def main():
     longpoll = VkBotLongPoll(vk_session, GROUP_ID)
 
     logger('Successfully logged')
-    keyboard = VkKeyboard(one_time=True)
+    keyboard = VkKeyboard()
     keyboard.add_button('Завершить предыдущий диалог', VkKeyboardColor.PRIMARY)
 
     for event in longpoll.listen():

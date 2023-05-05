@@ -21,12 +21,14 @@ class Conversation:
         return answer
 
     def add_state(self, role, message, user):
+        if not message:
+            return
         self.cur.execute(f"""
         INSERT INTO conv(id, role, message, user)
         VALUES({self.num + 1},
-              '{role}',
-              '{message}',
-              '{user}')
+              "{role}",
+              "{message.replace('"', "'")}",
+              "{user}")
         """)
         self.num += 1
         self.con.commit()
