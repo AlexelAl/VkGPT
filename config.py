@@ -9,6 +9,7 @@ tk = config['OPENAI_API_KEY']
 TOKEN = config['VK_TOKEN']
 
 GROUP_ID = 220253752
+FLOOD_DELAY = 10
 
 IMAGE_KW = '/image'
 

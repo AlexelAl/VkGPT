@@ -39,3 +39,15 @@ class Conversation:
         DELETE FROM conv WHERE user = {user}
         """)
         self.con.commit()
+
+    def cut(self, user, count):
+        res = self.cur.execute(f"""
+                SELECT * from conv WHERE user = {user}
+                """).fetchall()
+        for i in res:
+            count -= len(i[2])
+            self.cur.execute(f"""
+                    DELETE FROM conv WHERE id = {i[0]}
+                    """)
+            if count < 0:
+                return

@@ -1,4 +1,5 @@
 import time
+from config import FLOOD_DELAY
 
 
 class Flood:
@@ -6,7 +7,7 @@ class Flood:
         self.last = dict()
 
     def check(self, id):
-        if id in self.last and time.time() - self.last[id] < 10:
+        if id in self.last and time.time() - self.last[id] < FLOOD_DELAY:
             return True
         else:
             return False
